@@ -1,5 +1,6 @@
 package com.example.demo.student;
 
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -27,4 +28,37 @@ public class StudentService {
         studentRepository.save(student);
     }
 
+    public void deleteStudent(Long studentId) {
+        boolean exists = studentRepository.existsById(studentId);
+        if (!exists) {
+            throw new IllegalStateException("student with id " + studentId + " does not exists.");
+        }
+        studentRepository.deleteById(studentId);
+    }
+
+    @Transactional
+    public void updateStudent(Long studentId, String name, String email) {
+
+        boolean exists = studentRepository.existsById(studentId);
+        if (!exists) {
+            throw new IllegalStateException("student with id " + studentId + " does not exists.");
+        }
+
+        Student student = studentRepository.findById(studentId).orElseThrow(() -> new IllegalStateException("student " +
+                "with id " + studentId + " does not exists."));
+
+        if (name != null && !name.isEmpty() && !name.equals(student.getName())) {
+            student.setName(name);
+        }
+        if (email != null && !email.isEmpty() && !email.equals(student.getEmail())) {
+            Optional<Student> studentOptional = studentRepository.findStudentByEmail(email);    //here we need to check if the new email is already taken by someone else!
+            if (studentOptional.isPresent()) {
+                throw new IllegalStateException("email is taken");
+            }
+            student.setEmail(email);
+        }
+
+
+
+    }
 }
