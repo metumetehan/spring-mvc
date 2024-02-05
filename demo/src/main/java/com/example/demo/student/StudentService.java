@@ -1,22 +1,30 @@
 package com.example.demo.student;
 
-import org.springframework.stereotype.Component;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.GetMapping;
 
-import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class StudentService {
-    public List<Student> getStudent() {
-        return List.of(
-                new Student(
-                        1L,
-                        "Metehan",
-                        "mete@gmail.com",
-                        LocalDate.of(1999, 01, 01),
-                        24));
+    public final StudentRepository studentRepository;
 
+    @Autowired
+    public StudentService(StudentRepository studentRepository) {
+        this.studentRepository = studentRepository;
     }
+
+    public List<Student> getStudent() {
+        return studentRepository.findAll();
+    }
+
+    public void addNewStudent(Student student) {
+        Optional<Student> studentOptional = studentRepository.findStudentByEmail(student.getEmail());
+        if (studentOptional.isPresent()) {
+            throw new IllegalStateException("email is taken");
+        }
+        studentRepository.save(student);
+    }
+
 }
